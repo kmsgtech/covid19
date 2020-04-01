@@ -28,7 +28,7 @@ public class CVStatsSvcImpl implements CVStatsSvcInt
 		return adapter.getAllStats();
 	}
 	
-	@Override
+	@Override //To be used later
 	@RequestMapping(value="/lstcountrystats", method = RequestMethod.POST, headers="Accept=application/json")
 	public Map<String, Object> getCountryStats(@RequestParam Map<String, String> params, HttpSession httpSession,HttpServletRequest request, HttpServletResponse response) 
 	{
@@ -50,7 +50,7 @@ public class CVStatsSvcImpl implements CVStatsSvcInt
 		return adapter.getCurrentStats();
 	}
 	
-	@Override
+	@Override	//One time use
 	@RequestMapping(value="/update_historical_data", method = RequestMethod.POST, headers="Accept=application/json")
 	public Map<String, Object> UpdateHistoricalData(@RequestParam Map<String, String> params, HttpSession httpSession,HttpServletRequest request, HttpServletResponse response) 
 	{

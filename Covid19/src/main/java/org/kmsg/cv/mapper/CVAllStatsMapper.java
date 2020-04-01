@@ -18,6 +18,7 @@ public class CVAllStatsMapper implements RowMapper<CVStats>
 		stat.setTotalDeaths(rs.getInt("total_deaths"));
 		stat.setTodayCases(rs.getInt("today_cases"));
 		stat.setTodayDeaths(rs.getInt("today_deaths"));
+		stat.setTotalRecovery(rs.getInt("total_recovery"));
 		
 		if((rs.getInt("avg_total_cases") - (10 * rs.getInt("avg_total_cases"))/100) > rs.getInt("avg_total_cases_last5"))
 			stat.setCasesSummary(StatSummary.getBookingStatus(20));
