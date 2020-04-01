@@ -14,6 +14,7 @@ public class Constants {
 	public static String SUCCESS = "Success";
 	public static String FAILURE = "Failure";
 	public static String URL = "https://opendata.ecdc.europa.eu/covid19/casedistribution/json/";
+	public static String STAT_URL = "https://www.worldometers.info/coronavirus/";
 	public static DataSource dataSource = new DriverManagerDataSource();
 
 	//public static final BuyerType[] = [{"buyerTypeId":1,"Buyer"},{"buyerTypeId"=2,"buyerType":"Merchant"},{"buyerTypeId":3,"buyerType":"Factory"}]

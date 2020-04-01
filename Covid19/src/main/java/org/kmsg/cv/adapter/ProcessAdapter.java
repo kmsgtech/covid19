@@ -13,6 +13,7 @@ import java.util.Map;
 import javax.net.ssl.HttpsURLConnection;
 
 import org.kmsg.cv.common.CVLogger;
+import org.kmsg.cv.common.Constants;
 import org.kmsg.cv.common.DaoHandler;
 import org.kmsg.cv.common.SvcStatus;
 import org.kmsg.cv.daoimpl.ProcessDaoImpl;
@@ -36,10 +37,8 @@ public class ProcessAdapter implements CVLogger
 		String startTotalRow = "total_row";
 		boolean start = false,end = false, insideRow = false, insideTotalRow = false;
 		int columnCount = 0 ;
-		
-		String strUrl = "https://www.worldometers.info/coronavirus/";
 
-		URL servlet = new URL(strUrl);
+		URL servlet = new URL(Constants.STAT_URL);
 		HttpsURLConnection conn = (HttpsURLConnection) servlet.openConnection();
 		conn.setDoOutput(true);
 		conn.setDoInput(true);
