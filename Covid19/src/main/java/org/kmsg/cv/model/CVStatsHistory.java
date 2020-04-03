@@ -3,7 +3,6 @@ package org.kmsg.cv.model;
 public class CVStatsHistory 
 {
 	private String date;
-	private String country;
 	private int totalCases;
 	private int totalDeaths;
 	
@@ -13,12 +12,7 @@ public class CVStatsHistory
 	public void setDate(String date) {
 		this.date = date;
 	}
-	public String getCountry() {
-		return country;
-	}
-	public void setCountry(String country) {
-		this.country = country;
-	}
+
 	public int getTotalCases() {
 		return totalCases;
 	}

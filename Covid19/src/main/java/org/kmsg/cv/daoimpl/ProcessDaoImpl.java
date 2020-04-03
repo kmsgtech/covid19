@@ -18,7 +18,6 @@ import org.kmsg.cv.mapper.CVStatsHistoryMapper;
 import org.kmsg.cv.model.CVCurrentStats;
 import org.kmsg.cv.model.CVStats;
 import org.kmsg.cv.model.CVStatsHistory;
-import org.kmsg.cv.model.CVStatsHistoryList;
 import org.kmsg.cv.model.Historical;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -156,10 +155,9 @@ public class ProcessDaoImpl implements ProcessDaoInt, CVLogger
 				data.put(Constants.MESSAGE,"No Data Exist");
 				return data;
 			}
-			CVStatsHistoryList history = new CVStatsHistoryList();
-			history.setData(list);
+
 			data.put(Constants.STATUS,Constants.SUCCESS);
-			data.put("lstData",history);
+			data.put("lstData",list);
 			return data;
 		}
 		catch(Exception e)
@@ -188,7 +186,7 @@ public class ProcessDaoImpl implements ProcessDaoInt, CVLogger
 				" ,today_deaths  " + 
 				" ,total_recovery   " + 
 				" FROM cv_stats cs  " + 
-				" JOIN scraps s ON s.scrap_id = cs.scrap_id WHERE country <> 'TOTAL' AND s.scrap_dt_tm = (SELECT max(scrap_dt_tm) FROM scraps WHERE scrap_status = 1);";
+				" JOIN scraps s ON s.scrap_id = cs.scrap_id WHERE country <> 'TOTAL' AND s.scrap_dt_tm = (SELECT max(scrap_dt_tm) FROM scraps WHERE scrap_status = 1) ORDER BY total_deaths desc;";
 				
 		try {
 			List<CVStats> list = template.query(SQL,new CVAllStatsMapper());
@@ -218,10 +216,10 @@ public class ProcessDaoImpl implements ProcessDaoInt, CVLogger
 		Map<String,Object> data = new HashMap<>();
 		
 		String SQL = "SELECT " + 
-				" (SELECT cs.country FROM cv_stats cs JOIN scraps s ON s.scrap_id = cs.scrap_id WHERE cs.country <> 'TOTAL'" + 
-				" AND s.scrap_dt_tm = (SELECT max(scrap_dt_tm) FROM scraps WHERE scrap_status = 1) AND cs.total_cases = (SELECT MAX(total_cases) FROM cv_stats cs JOIN scraps s ON s.scrap_id = cs.scrap_id WHERE cs.country <> 'TOTAL' AND s.scrap_dt_tm = (SELECT max(scrap_dt_tm) FROM scraps WHERE scrap_status = 1))) as max_total_cases" + 
-				" ,(SELECT cs.country FROM cv_stats cs JOIN scraps s ON s.scrap_id = cs.scrap_id WHERE cs.country <> 'TOTAL'" + 
-				" AND s.scrap_dt_tm = (SELECT max(scrap_dt_tm) FROM scraps WHERE scrap_status = 1) AND cs.total_deaths = (SELECT MAX(total_deaths) FROM cv_stats cs JOIN scraps s ON s.scrap_id = cs.scrap_id WHERE cs.country <> 'TOTAL' AND s.scrap_dt_tm = (SELECT max(scrap_dt_tm) FROM scraps WHERE scrap_status = 1))) as max_total_deaths" + 
+				" (SELECT cs.country FROM cv_stats cs JOIN scraps s ON s.scrap_id = cs.scrap_id WHERE cs.country <> 'TOTAL'  " + 
+				" AND s.scrap_dt_tm = (SELECT max(scrap_dt_tm) FROM scraps WHERE scrap_status = 1) AND cs.today_cases = (SELECT MAX(today_cases) FROM cv_stats cs JOIN scraps s ON s.scrap_id = cs.scrap_id WHERE cs.country <> 'TOTAL' AND s.scrap_dt_tm = (SELECT max(scrap_dt_tm) FROM scraps WHERE scrap_status = 1))) as max_today_cases  " + 
+				" ,(SELECT cs.country FROM cv_stats cs JOIN scraps s ON s.scrap_id = cs.scrap_id WHERE cs.country <> 'TOTAL'  " + 
+				" AND s.scrap_dt_tm = (SELECT max(scrap_dt_tm) FROM scraps WHERE scrap_status = 1) AND cs.today_deaths = (SELECT MAX(today_deaths) FROM cv_stats cs JOIN scraps s ON s.scrap_id = cs.scrap_id WHERE cs.country <> 'TOTAL' AND s.scrap_dt_tm = (SELECT max(scrap_dt_tm) FROM scraps WHERE scrap_status = 1))) as max_today_deaths" + 
 				" ,total_cases  " + 
 				" ,today_cases  " + 
 				" ,total_deaths  " + 
@@ -265,7 +263,7 @@ public class ProcessDaoImpl implements ProcessDaoInt, CVLogger
 				" SELECT" + 
 				"		cs.country," + 
 				"		cs.today_cases," + 
-				"		cs.today_deaths," + 
+				"		cs.today_deaths" + 
 				"		,DATE_FORMAT(scrap_dt_tm,'%Y-%m-%d')" + 
 				"	   FROM cv_stats cs" + 
 				"	   JOIN scraps s ON s.scrap_id = cs.scrap_id WHERE country <> 'TOTAL' AND s.scrap_dt_tm = (SELECT max(scrap_dt_tm) FROM scraps WHERE scrap_status = 1)" ;

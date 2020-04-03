@@ -17,8 +17,8 @@ public class CVCurrentStatsMapper implements RowMapper<CVCurrentStats>
 		stat.setTotalCases(rs.getInt("total_cases"));
 		stat.setTotalDeaths(rs.getInt("total_deaths"));
 		stat.setTotalRecovery(rs.getInt("total_recovery"));
-		stat.setMaxTotalCases(rs.getString("max_total_cases"));
-		stat.setMaxTotalDeaths(rs.getString("max_total_deaths"));
+		stat.setMaxTotalCases(rs.getString("max_today_cases"));
+		stat.setMaxTotalDeaths(rs.getString("max_today_deaths"));
 		return stat;
 	}
 }

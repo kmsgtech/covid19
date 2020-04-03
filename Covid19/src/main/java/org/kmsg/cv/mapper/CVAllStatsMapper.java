@@ -20,21 +20,21 @@ public class CVAllStatsMapper implements RowMapper<CVStats>
 		stat.setTodayDeaths(rs.getInt("today_deaths"));
 		stat.setTotalRecovery(rs.getInt("total_recovery"));
 		
-		if((rs.getInt("avg_total_cases") - (10 * rs.getInt("avg_total_cases"))/100) > rs.getInt("avg_total_cases_last5"))
+		if((rs.getInt("avg_total_cases") - (8 * rs.getInt("avg_total_cases"))/100) > rs.getInt("avg_total_cases_last5"))
 			stat.setCasesSummary(StatSummary.getBookingStatus(20));
 		else
 		{
-			if((rs.getInt("avg_total_cases") + (10 * rs.getInt("avg_total_cases"))/100) < rs.getInt("avg_total_cases_last5"))
+			if((rs.getInt("avg_total_cases") + (8 * rs.getInt("avg_total_cases"))/100) < rs.getInt("avg_total_cases_last5"))
 				stat.setCasesSummary(StatSummary.getBookingStatus(30));
 			else
 				stat.setCasesSummary(StatSummary.getBookingStatus(10));
 		}
 		
-		if((rs.getInt("avg_total_deaths") - (10 * rs.getInt("avg_total_deaths"))/100) > rs.getInt("avg_total_deaths_last5"))
+		if((rs.getInt("avg_total_deaths") - (8 * rs.getInt("avg_total_deaths"))/100) > rs.getInt("avg_total_deaths_last5"))
 			stat.setDeathSummary(StatSummary.getBookingStatus(20));
 		else
 		{
-			if((rs.getInt("avg_total_deaths") + (10 * rs.getInt("avg_total_deaths"))/100) < rs.getInt("avg_total_deaths_last5"))
+			if((rs.getInt("avg_total_deaths") + (8 * rs.getInt("avg_total_deaths"))/100) < rs.getInt("avg_total_deaths_last5"))
 				stat.setDeathSummary(StatSummary.getBookingStatus(30));
 			else
 				stat.setDeathSummary(StatSummary.getBookingStatus(10));
