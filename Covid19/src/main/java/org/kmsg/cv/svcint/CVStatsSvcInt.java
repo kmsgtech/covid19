@@ -23,4 +23,7 @@ public interface CVStatsSvcInt {
 	Map<String, Object> UpdateHistoricalData(Map<String, String> params, HttpSession httpSession,
 			HttpServletRequest request, HttpServletResponse response);
 
+	Map<String, Object> getCountryHistory(Map<String, String> params, HttpSession httpSession,
+			HttpServletRequest request, HttpServletResponse response);
+
 }

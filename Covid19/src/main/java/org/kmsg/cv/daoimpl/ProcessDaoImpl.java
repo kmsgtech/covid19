@@ -13,8 +13,10 @@ import org.kmsg.cv.common.Constants;
 import org.kmsg.cv.common.Util;
 import org.kmsg.cv.daoint.ProcessDaoInt;
 import org.kmsg.cv.mapper.CVAllStatsMapper;
+import org.kmsg.cv.mapper.CVCountryCurrentStatsMapper;
 import org.kmsg.cv.mapper.CVCurrentStatsMapper;
 import org.kmsg.cv.mapper.CVStatsHistoryMapper;
+import org.kmsg.cv.model.CVCurrentCountryStats;
 import org.kmsg.cv.model.CVCurrentStats;
 import org.kmsg.cv.model.CVStats;
 import org.kmsg.cv.model.CVStatsHistory;
@@ -170,6 +172,41 @@ public class ProcessDaoImpl implements ProcessDaoInt, CVLogger
 	}
 	
 	@Override
+	public Map<String, Object> selectStatsCountryHistory(String country) 
+	{
+		Map<String,Object> data = new HashMap<>();
+		
+		String SQL = " Select total_cases as total_cases  " + 
+				" ,total_deaths as total_deaths  " + 
+				" ,DATE_FORMAT(cv_date,'%d-%m-%Y') as cv_date  " + 
+				" FROM cv_stats_history" + 
+				" WHERE country = ?" + 
+				" GROUP BY cv_date;";
+				
+		try {
+			List<CVStatsHistory> list = template.query(SQL,new Object[] {country},new CVStatsHistoryMapper());
+			
+			if(list.size()==0)
+			{
+				data.put(Constants.STATUS,Constants.FAILURE);
+				data.put(Constants.MESSAGE,"No Data Exist");
+				return data;
+			}
+
+			data.put(Constants.STATUS,Constants.SUCCESS);
+			data.put("lstData",list);
+			return data;
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			data.put(Constants.STATUS,Constants.FAILURE);
+			data.put(Constants.MESSAGE,e);
+			return data;
+		}
+	}
+	
+	@Override
 	public Map<String, Object> selectStatsList() 
 	{
 		Map<String,Object> data = new HashMap<>();
@@ -210,6 +247,43 @@ public class ProcessDaoImpl implements ProcessDaoInt, CVLogger
 			return data;
 		}
 	}
+	
+	@Override
+	public Map<String, Object> selectCountryCurrentStats(String country) 
+	{
+		Map<String,Object> data = new HashMap<>();
+		
+		String SQL = "SELECT " + 
+				" total_cases  " + 
+				" ,today_cases  " + 
+				" ,total_deaths  " + 
+				" ,today_deaths  " + 
+				" ,total_recovery   " + 
+				" FROM cv_stats cs  " + 
+				" JOIN scraps s ON s.scrap_id = cs.scrap_id WHERE country = ? AND s.scrap_dt_tm = (SELECT max(scrap_dt_tm) FROM scraps WHERE scrap_status = 1);";
+				
+		try {
+			List<CVCurrentCountryStats> list = template.query(SQL,new Object[]{country}, new CVCountryCurrentStatsMapper());
+			
+			if(list.size()==0)
+			{
+				data.put(Constants.STATUS,Constants.FAILURE);
+				data.put(Constants.MESSAGE,"No Data Available!!");
+				return data;
+			}
+
+			data.put(Constants.STATUS,Constants.SUCCESS);
+			data.put("currentStats",list.get(0));
+			return data;
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			data.put(Constants.STATUS,Constants.FAILURE);
+			data.put(Constants.MESSAGE,e);
+			return data;
+		}
+	}
 
 	public Map<String, Object> selectCurrentStats() 
 	{
@@ -217,9 +291,9 @@ public class ProcessDaoImpl implements ProcessDaoInt, CVLogger
 		
 		String SQL = "SELECT " + 
 				" (SELECT cs.country FROM cv_stats cs JOIN scraps s ON s.scrap_id = cs.scrap_id WHERE cs.country <> 'TOTAL'  " + 
-				" AND s.scrap_dt_tm = (SELECT max(scrap_dt_tm) FROM scraps WHERE scrap_status = 1) AND cs.today_cases = (SELECT MAX(today_cases) FROM cv_stats cs JOIN scraps s ON s.scrap_id = cs.scrap_id WHERE cs.country <> 'TOTAL' AND s.scrap_dt_tm = (SELECT max(scrap_dt_tm) FROM scraps WHERE scrap_status = 1))) as max_today_cases  " + 
+				" AND s.scrap_dt_tm = (SELECT max(scrap_dt_tm) FROM scraps WHERE scrap_status = 1) AND cs.today_cases = (SELECT MAX(today_cases) FROM cv_stats cs JOIN scraps s ON s.scrap_id = cs.scrap_id WHERE cs.country <> 'TOTAL' AND s.scrap_dt_tm = (SELECT max(scrap_dt_tm) FROM scraps WHERE scrap_status = 1)) LIMIT 1) as max_today_cases  " + 
 				" ,(SELECT cs.country FROM cv_stats cs JOIN scraps s ON s.scrap_id = cs.scrap_id WHERE cs.country <> 'TOTAL'  " + 
-				" AND s.scrap_dt_tm = (SELECT max(scrap_dt_tm) FROM scraps WHERE scrap_status = 1) AND cs.today_deaths = (SELECT MAX(today_deaths) FROM cv_stats cs JOIN scraps s ON s.scrap_id = cs.scrap_id WHERE cs.country <> 'TOTAL' AND s.scrap_dt_tm = (SELECT max(scrap_dt_tm) FROM scraps WHERE scrap_status = 1))) as max_today_deaths" + 
+				" AND s.scrap_dt_tm = (SELECT max(scrap_dt_tm) FROM scraps WHERE scrap_status = 1) AND cs.today_deaths = (SELECT MAX(today_deaths) FROM cv_stats cs JOIN scraps s ON s.scrap_id = cs.scrap_id WHERE cs.country <> 'TOTAL' AND s.scrap_dt_tm = (SELECT max(scrap_dt_tm) FROM scraps WHERE scrap_status = 1)) LIMIT 1) as max_today_deaths" + 
 				" ,total_cases  " + 
 				" ,today_cases  " + 
 				" ,total_deaths  " + 

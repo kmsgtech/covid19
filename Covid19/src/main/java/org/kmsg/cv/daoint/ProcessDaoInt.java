@@ -14,4 +14,8 @@ public interface ProcessDaoInt {
 
 	int deleteHistoricalData();
 
+	Map<String, Object> selectStatsCountryHistory(String country);
+
+	Map<String, Object> selectCountryCurrentStats(String country);
+
 }

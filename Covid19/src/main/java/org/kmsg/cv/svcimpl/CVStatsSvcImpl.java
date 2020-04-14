@@ -28,12 +28,20 @@ public class CVStatsSvcImpl implements CVStatsSvcInt
 		return adapter.getAllStats();
 	}
 	
-	@Override //To be used later
-	@RequestMapping(value="/lstcountrystats", method = RequestMethod.POST, headers="Accept=application/json")
+	@Override
+	@RequestMapping(value="/country_stats", method = RequestMethod.POST, headers="Accept=application/json")
 	public Map<String, Object> getCountryStats(@RequestParam Map<String, String> params, HttpSession httpSession,HttpServletRequest request, HttpServletResponse response) 
 	{
 		String country = params.get("country");
-		return adapter.getCountryStats(country.toUpperCase());
+		return adapter.getCountryCurrentStats(country.toUpperCase());
+	}
+	
+	@Override
+	@RequestMapping(value="/country_history", method = RequestMethod.POST, headers="Accept=application/json")
+	public Map<String, Object> getCountryHistory(@RequestParam Map<String, String> params, HttpSession httpSession,HttpServletRequest request, HttpServletResponse response) 
+	{
+		String country = params.get("country");
+		return adapter.getCountryHistoryStats(country.toUpperCase());
 	}
 	
 	@Override

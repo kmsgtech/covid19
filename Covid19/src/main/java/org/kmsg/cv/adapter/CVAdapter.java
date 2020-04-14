@@ -17,6 +17,8 @@ import org.kmsg.cv.common.DaoHandler;
 import org.kmsg.cv.common.SvcStatus;
 import org.kmsg.cv.common.Util;
 import org.kmsg.cv.daoimpl.ProcessDaoImpl;
+import org.kmsg.cv.model.CVCountryCurrentFinalStats;
+import org.kmsg.cv.model.CVCurrentCountryStats;
 import org.kmsg.cv.model.CVCurrentFinalStats;
 import org.kmsg.cv.model.CVCurrentStats;
 import org.kmsg.cv.model.CVStatsHistory;
@@ -46,40 +48,25 @@ public class CVAdapter
 		
 		if(data.get(SvcStatus.STATUS).equals(SvcStatus.SUCCESS))
 		{
-			CVStatsHistoryObject obj = new CVStatsHistoryObject();
-			List<String> cvDates = new ArrayList<>();
-			List<Integer> cvCases = new ArrayList<>();
-			List<Integer> cvDeaths = new ArrayList<>();
-			
 			List<CVStatsHistory> list = (List<CVStatsHistory>) data.get("lstData");
-			for(int i = 0; i < list.size(); i++)
-			{
-				cvDates.add(list.get(i).getDate());
-				cvCases.add(list.get(i).getTotalCases());
-				cvDeaths.add(list.get(i).getTotalDeaths());
-			}
-			obj.setCvCases(cvCases);
-			obj.setCvDates(cvDates);
-			obj.setCvDeaths(cvDeaths);
-			
-			data.remove("lstData");
-			data.put(Constants.STATUS,Constants.SUCCESS);
-			data.put("data",obj);
-			return data;
+			return getHistoryData(list);
 		}
 		return data;
 	}
-
-	public Map<String, Object> getCountryStats(String country) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
+	
 	public Map<String, Object> getCurrentStats() 
 	{
 		Map<String,Object> data = dao.selectCurrentStats();
+		CVCurrentStats stats = new CVCurrentStats();
 		
-		CVCurrentStats stats = (CVCurrentStats) data.get("currentStats");
+		if(data.get(SvcStatus.STATUS).equals(SvcStatus.SUCCESS))
+			stats = (CVCurrentStats) data.get("currentStats");
+		else
+		{
+			data.put(Constants.STATUS,Constants.FAILURE);
+			data.put(Constants.MESSAGE,"Not able to fetch data");
+			return data;
+		}
 
 		String totalCases = "", totalDeaths = "", totalRecovery = "";
 		int count = 0;
@@ -121,6 +108,15 @@ public class CVAdapter
 				totalRecovery = String.valueOf(stats.getTotalRecovery()).charAt(i) + totalRecovery;
 		}
 		
+		if(totalRecovery.charAt(0)==',')
+			totalRecovery = totalRecovery.substring(1);
+		
+		if(totalCases.charAt(0)==',')
+			totalCases = totalCases.substring(1);
+		
+		if(totalDeaths.charAt(0)==',')
+			totalDeaths = totalDeaths.substring(1);
+		
 		CVCurrentFinalStats newStats = new CVCurrentFinalStats();
 		
 		newStats.setTotalCases(totalCases);
@@ -130,6 +126,91 @@ public class CVAdapter
 		newStats.setTodayDeaths(String.valueOf(stats.getTodayDeaths()));
 		newStats.setMaxTotalCases(String.valueOf(stats.getMaxTotalCases()));
 		newStats.setMaxTotalDeaths(String.valueOf(stats.getMaxTotalDeaths()));
+		
+		data.remove("currentStats");
+		data.put(Constants.STATUS,Constants.SUCCESS);
+		data.put("currentStats",newStats);
+		return data;
+	}
+
+	
+	@SuppressWarnings("unchecked")
+	public Map<String, Object> getCountryHistoryStats(String country) 
+	{
+		Map<String,Object> data = new HashMap<>();
+		data = dao.selectStatsCountryHistory(country);
+		
+		if(data.get(SvcStatus.STATUS).equals(SvcStatus.SUCCESS))
+		{
+			List<CVStatsHistory> list = (List<CVStatsHistory>) data.get("lstData");
+			return getHistoryData(list);
+		}
+		return data;
+	}
+
+	public Map<String, Object> getCountryCurrentStats(String country) 
+	{
+		Map<String,Object> data = dao.selectCountryCurrentStats(country);
+		
+		CVCurrentCountryStats stats = (CVCurrentCountryStats) data.get("currentStats");
+
+		String totalCases = "", totalDeaths = "", totalRecovery = "";
+		int count = 0;
+		
+		for(int i = String.valueOf(stats.getTotalCases()).length() - 1; i >= 0 ; i--)
+		{
+			count++;
+			if(count % 3 == 0)
+			{
+				totalCases = String.valueOf(stats.getTotalCases()).charAt(i) + totalCases;
+				totalCases = "," + totalCases;
+			}
+			else
+				totalCases = String.valueOf(stats.getTotalCases()).charAt(i) + totalCases;
+		}
+		count = 0;
+		
+		for(int i = String.valueOf(stats.getTotalDeaths()).length() - 1; i >= 0 ; i--)
+		{
+			count++;
+			if(count % 3 == 0)
+			{
+				totalDeaths = String.valueOf(stats.getTotalDeaths()).charAt(i) + totalDeaths;
+				totalDeaths = "," + totalDeaths;
+			}
+			else
+				totalDeaths = String.valueOf(stats.getTotalDeaths()).charAt(i) + totalDeaths;
+		}
+		count = 0;
+		
+		for(int i = String.valueOf(stats.getTotalRecovery()).length() - 1; i >= 0 ; i--)
+		{
+			count++;
+			if(count % 3 == 0)
+			{
+				totalRecovery = String.valueOf(stats.getTotalRecovery()).charAt(i) + totalRecovery;
+				totalRecovery = "," + totalRecovery;
+			}
+			else
+				totalRecovery = String.valueOf(stats.getTotalRecovery()).charAt(i) + totalRecovery;
+		}
+		
+		if(totalRecovery.charAt(0)==',')
+			totalRecovery = totalRecovery.substring(1);
+		
+		if(totalCases.charAt(0)==',')
+			totalCases = totalCases.substring(1);
+		
+		if(totalDeaths.charAt(0)==',')
+			totalDeaths = totalDeaths.substring(1);
+		
+		CVCountryCurrentFinalStats newStats = new CVCountryCurrentFinalStats();
+		
+		newStats.setTotalCases(totalCases);
+		newStats.setTotalDeaths(totalDeaths);
+		newStats.setTotalRecovery(totalRecovery);
+		newStats.setTodayCases(String.valueOf(stats.getTodayCases()));
+		newStats.setTodayDeaths(String.valueOf(stats.getTodayDeaths()));
 		
 		data.remove("currentStats");
 		data.put(Constants.STATUS,Constants.SUCCESS);
@@ -154,7 +235,7 @@ public class CVAdapter
 			  BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
 			  String jsonText = Util.readAll(rd);
 			  rd.close();
-			  JSONObject json = new JSONObject(jsonText.substring(1));
+			  JSONObject json = new JSONObject(jsonText);
 			  Gson gson = new Gson();
 			  for(int i = 0; i < json.getJSONArray("records").length(); i++)
 			  {
@@ -177,6 +258,29 @@ public class CVAdapter
 		}
 	}
 	
-	
+	private Map<String, Object> getHistoryData(List<CVStatsHistory> list)
+	{
+		Map<String,Object> data = new HashMap<>();
+		
+		CVStatsHistoryObject obj = new CVStatsHistoryObject();
+		List<String> cvDates = new ArrayList<>();
+		List<Integer> cvCases = new ArrayList<>();
+		List<Integer> cvDeaths = new ArrayList<>();
+		
+		for(int i = 0; i < list.size(); i++)
+		{
+			cvDates.add(list.get(i).getDate());
+			cvCases.add(list.get(i).getTotalCases());
+			cvDeaths.add(list.get(i).getTotalDeaths());
+		}
+		obj.setCvCases(cvCases);
+		obj.setCvDates(cvDates);
+		obj.setCvDeaths(cvDeaths);
+		
+		data.remove("lstData");
+		data.put(Constants.STATUS,Constants.SUCCESS);
+		data.put("data",obj);
+		return data;
+	}
 	
 }

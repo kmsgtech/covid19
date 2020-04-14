@@ -29,136 +29,150 @@ public class ProcessAdapter implements CVLogger
 	ProcessDaoImpl dao;
 	
 	@Scheduled(fixedDelay = 600000, initialDelay = 3000)
-	public void GetReadingData() throws IOException
+	public void GetReadingData()
 	{
+		DaoHandler dh = new DaoHandler();
+		dh.start(new Object(){}.getClass().getEnclosingMethod().getName());
+		
 		String startContent = "main_table_countries_today";
 		String endContent = "</table>";
 		String startRow = "<tr style=\"\">";
-		String startTotalRow = "total_row";
+		String startTotalRow = "\"total_row\"";
 		boolean start = false,end = false, insideRow = false, insideTotalRow = false;
 		int columnCount = 0 ;
-
-		URL servlet = new URL(Constants.STAT_URL);
-		HttpsURLConnection conn = (HttpsURLConnection) servlet.openConnection();
-		conn.setDoOutput(true);
-		conn.setDoInput(true);
-		conn.setUseCaches(false);
-		conn.setRequestProperty("Content-type", "text/plain");
-
-		DataOutputStream out = new DataOutputStream( conn.getOutputStream() );
-
-		out.flush();
-		out.close();
-		
-		BufferedReader reader = new BufferedReader( new InputStreamReader(conn.getInputStream()));
-		String rowData = "";
 		List<CVStats> listStats = new ArrayList<>();
-		CVStats stats = new CVStats();
-		
-		while ((rowData = reader.readLine()) != null) 
-		{
-			if ( rowData.trim().isEmpty()) 
-				continue;
-			
-			rowData = rowData.replace("&nbsp;"," ");
-			
-			if(rowData.contains(endContent))
-			{
-				end = true;
-				break;
-			}
-			
-			if(rowData.contains(startContent))
-				start = true;
-			
-			if(start)
-			{
-				if(rowData.contains(startRow))
-				{
-					insideRow = true;
-					continue;
-				}
-				
-				if(rowData.contains(startTotalRow))
-				{
-					insideTotalRow = true;
-					continue;
-				}
 
-				if(insideRow)
+		try {
+			URL servlet = new URL(Constants.STAT_URL);
+			HttpsURLConnection conn = (HttpsURLConnection) servlet.openConnection();
+			conn.setDoOutput(true);
+			conn.setDoInput(true);
+			conn.setUseCaches(false);
+			conn.setRequestProperty("Content-type", "text/plain");
+	
+			DataOutputStream out = new DataOutputStream( conn.getOutputStream() );
+	
+			out.flush();
+			out.close();
+			
+			BufferedReader reader = new BufferedReader( new InputStreamReader(conn.getInputStream()));
+			String rowData = "";
+			
+			CVStats stats = new CVStats();
+		
+			while ((rowData = reader.readLine()) != null) 
+			{
+				if ( rowData.trim().isEmpty()) 
+					continue;
+				
+				rowData = rowData.replace("&nbsp;"," ");
+				
+				if(rowData.contains(endContent))
 				{
-					columnCount++;
-					String content = rowData.substring(rowData.lastIndexOf("\">")+2,rowData.indexOf("</")).trim();
-					
-					switch(columnCount)
-					{
-						case 1 : stats.setCountry(content.toUpperCase());
-						break;
-						
-						case 2 : stats.setTotalCases((content.replaceAll(",","").length()!=0) ? Integer.parseInt(content.replaceAll(",","")) : 0);
-						break;
-						
-						case 3 : stats.setTodayCases((content.replaceAll(",","").length()!=0) ? Integer.parseInt(content.replaceAll(",","").substring(1)) : 0);
-						break;
-						
-						case 4 : stats.setTotalDeaths((content.replaceAll(",","").length()!=0) ? Integer.parseInt(content.replaceAll(",","")) : 0);
-						break;
-						
-						case 5 : stats.setTodayDeaths((content.replaceAll(",","").length()!=0) ? Integer.parseInt(content.replaceAll(",","").substring(1)) : 0);
-						break;
-						
-						case 6 : stats.setTotalRecovery((content.replaceAll(",","").length()!=0) ? Integer.parseInt(content.replaceAll(",","")) : 0);
-						break;
-						
-						case 7 : {
-							insideRow = false;
-							columnCount = 0;
-							listStats.add(stats);
-							stats = new CVStats();
-						}
-						break;
-					}
+					end = true;
+					break;
 				}
 				
-				if(insideTotalRow)
+				if(rowData.contains(startContent))
+					start = true;
+				
+				if(start)
 				{
-					columnCount++;
-					String content = rowData.substring(rowData.indexOf(">")+1,rowData.indexOf("</")).trim();
-					String countryContent = rowData.substring(rowData.indexOf("g>")+2,rowData.indexOf("</")).trim();
-					
-					switch(columnCount)
+					if(rowData.contains(startRow))
 					{
-						case 1 : stats.setCountry(countryContent.substring(0,countryContent.length()-1).toUpperCase());
-						break;
-						
-						case 2 : stats.setTotalCases((content.replaceAll(",","").length()!=0) ? Integer.parseInt(content.replaceAll(",","")) : 0);
-						break;
-						
-						case 3 : stats.setTodayCases((content.replaceAll(",","").length()!=0) ? Integer.parseInt(content.replaceAll(",","").substring(1)) : 0);
-						break;
-						
-						case 4 : stats.setTotalDeaths((content.replaceAll(",","").length()!=0) ? Integer.parseInt(content.replaceAll(",","")) : 0);
-						break;
-						
-						case 5 : stats.setTodayDeaths((content.replaceAll(",","").length()!=0) ? Integer.parseInt(content.replaceAll(",","").substring(1)) : 0);
-						break;
-						
-						case 6 : stats.setTotalRecovery((content.replaceAll(",","").length()!=0) ? Integer.parseInt(content.replaceAll(",","")) : 0);
-						break;
-						
-						case 7 : {
-							insideTotalRow = false;
-							columnCount = 0;
-							listStats.add(stats);
-							stats = new CVStats();
+						insideRow = true;
+						continue;
+					}
+					
+					if(rowData.contains(startTotalRow))
+					{
+						insideTotalRow = true;
+						continue;
+					}
+	
+					if(insideRow)
+					{
+						if(rowData.charAt(rowData.length()-1) != '>')
+							continue;
+							
+						columnCount++;
+						String content = rowData.substring(rowData.lastIndexOf("\">")+2,rowData.indexOf("</")).trim();
+
+						switch(columnCount)
+						{
+							case 1 : stats.setCountry(content.toUpperCase());
+							break;
+							
+							case 2 : stats.setTotalCases((content.replaceAll(",","").length()!=0) && (!content.equals("N/A")) ? Integer.parseInt(content.replaceAll(",","")) : 0);
+							break;
+							
+							case 3 : stats.setTodayCases((content.replaceAll(",","").length()!=0) && (!content.equals("N/A")) ? Integer.parseInt(content.replaceAll(",","").substring(1)) : 0);
+							break;
+							
+							case 4 : stats.setTotalDeaths((content.replaceAll(",","").length()!=0) && (!content.equals("N/A")) ? Integer.parseInt(content.replaceAll(",","")) : 0);
+							break;
+							
+							case 5 : stats.setTodayDeaths((content.replaceAll(",","").length()!=0) && (!content.equals("N/A")) ? Integer.parseInt(content.replaceAll(",","").substring(1)) : 0);
+							break;
+							
+							case 6 : stats.setTotalRecovery((content.replaceAll(",","").length()!=0) && (!content.equals("N/A")) ? Integer.parseInt(content.replaceAll(",","")) : 0);
+							break;
+							
+							case 7 : {
+								insideRow = false;
+								columnCount = 0;
+								listStats.add(stats);
+								stats = new CVStats();
+							}
+							break;
 						}
-						break;
+					}
+					
+					if(insideTotalRow)
+					{
+						columnCount++;
+						String content = rowData.substring(rowData.indexOf(">")+1,rowData.indexOf("</")).trim();
+						String countryContent = rowData.substring(rowData.indexOf("g>")+2,rowData.indexOf("</")).trim();
+
+						switch(columnCount)
+						{
+							case 1 : stats.setCountry(countryContent.substring(0,countryContent.length()-1).toUpperCase());
+							break;
+							
+							case 2 : stats.setTotalCases((content.replaceAll(",","").length()!=0) && (!content.equals("N/A")) ? Integer.parseInt(content.replaceAll(",","")) : 0);
+							break;
+							
+							case 3 : stats.setTodayCases((content.replaceAll(",","").length()!=0) && (!content.equals("N/A")) ? Integer.parseInt(content.replaceAll(",","").substring(1)) : 0);
+							break;
+							
+							case 4 : stats.setTotalDeaths((content.replaceAll(",","").length()!=0) && (!content.equals("N/A")) ? Integer.parseInt(content.replaceAll(",","")) : 0);
+							break;
+							
+							case 5 : stats.setTodayDeaths((content.replaceAll(",","").length()!=0) && (!content.equals("N/A")) ? Integer.parseInt(content.replaceAll(",","").substring(1)) : 0);
+							break;
+							
+							case 6 : stats.setTotalRecovery((content.replaceAll(",","").length()!=0) && (!content.equals("N/A")) ? Integer.parseInt(content.replaceAll(",","")) : 0);
+							break;
+							
+							case 7 : {
+								insideTotalRow = false;
+								columnCount = 0;
+								listStats.add(stats);
+								stats = new CVStats();
+							}
+							break;
+						}
 					}
 				}
 			}
 		}
-		DaoHandler dh = new DaoHandler();
-		dh.start(new Object(){}.getClass().getEnclosingMethod().getName());
+		catch(IOException | StringIndexOutOfBoundsException e)
+		{
+			e.printStackTrace();
+			dh.rollback(new Object(){}.getClass().getEnclosingMethod().getName());
+			logger.error(""+e);
+			return;
+		}
 		
 		if(end)
 		{
