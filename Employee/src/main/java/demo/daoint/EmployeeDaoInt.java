@@ -1,7 +1,7 @@
 package demo.daoint;
 
 import java.util.Map;
-
+import java.util.Scanner;
 import demo.model.Employee;
 
 public interface EmployeeDaoInt {
