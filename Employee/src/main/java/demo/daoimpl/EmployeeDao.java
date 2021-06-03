@@ -22,8 +22,8 @@ import demo.adapter.SvcStatus;
 import demo.daoint.EmployeeDaoInt;
 import demo.model.Employee;
 import demo.model.EmployeeDtls;
-
-@Repository
+import java.util.*
+;@Repository
 public class EmployeeDao implements EmployeeDaoInt {
 
 	@Autowired
